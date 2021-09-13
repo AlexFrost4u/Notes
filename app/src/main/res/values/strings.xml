@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Notes</string>
+    <string name="test_string">Hi there how \n, are you doing here right at the moment </string>
+    <string name="actionBarLabel">Think.Perform.Relax.</string>
+    <string name="add_note">Add note</string>
+
 </resources>

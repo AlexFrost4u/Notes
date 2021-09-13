@@ -1,7 +1,8 @@
-package com.example.notes
+package com.example.notes.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.WindowManager
 import com.example.notes.R
 import dagger.hilt.android.AndroidEntryPoint
 
