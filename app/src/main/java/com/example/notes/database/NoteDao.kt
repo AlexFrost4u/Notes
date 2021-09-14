@@ -19,10 +19,10 @@ interface NoteDao {
     fun getAllNotes(): LiveData<List<NoteEntity>>
 
     // Get note by specific id
-    @Query("SELECT * FROM notes WHERE id=:key")
+    @Query("SELECT * FROM notes WHERE noteId=:key")
     suspend fun getNoteById(key:Long):NoteEntity
 
     // Delete note by id
-    @Query("DELETE FROM notes WHERE id =:key")
+    @Query("DELETE FROM notes WHERE noteId =:key")
     fun deleteNoteById(key:Long)
 }

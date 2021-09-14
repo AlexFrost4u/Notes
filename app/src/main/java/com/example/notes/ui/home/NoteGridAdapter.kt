@@ -8,14 +8,27 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.notes.database.NoteEntity
 import com.example.notes.databinding.ListItemBinding
 
-class NoteGridAdapter (private val onClickListener: OnClickListener) :
+class NoteGridAdapter(private val customClickListener:CustomClickListener) :
     ListAdapter<NoteEntity, NoteGridAdapter.NoteViewHolder>(DiffCallback) {
 
-    class NoteViewHolder(private var binding: ListItemBinding) :
+    inner class NoteViewHolder(private var binding: ListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(note: NoteEntity) {
             binding.note = note
             binding.executePendingBindings()
+
+            binding.shareImage.setOnClickListener {
+                customClickListener.clickOnShareIcon(note)
+            }
+            binding.moveImage.setOnClickListener {
+                customClickListener.clickOnMoveToTopIcon(note)
+            }
+            binding.noteText.setOnClickListener {
+                customClickListener.clickOnText(note)
+            }
+            binding.pinImage.setOnClickListener {
+                customClickListener.clickOnPinIcon(note)
+            }
         }
     }
 
@@ -25,7 +38,7 @@ class NoteGridAdapter (private val onClickListener: OnClickListener) :
         }
 
         override fun areContentsTheSame(oldItem: NoteEntity, newItem: NoteEntity): Boolean {
-            return oldItem.id == newItem.id
+            return oldItem.noteId == newItem.noteId
         }
     }
 
@@ -35,13 +48,13 @@ class NoteGridAdapter (private val onClickListener: OnClickListener) :
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val user = getItem(position)
-        holder.itemView.setOnClickListener {
-            onClickListener.onClick(user)
-        }
         holder.bind(user)
     }
 
-    class OnClickListener(val clickListener: (note: NoteEntity) -> Unit) {
-        fun onClick(note: NoteEntity) = clickListener(note)
+    interface MyClickListener {
+        fun onShare(note: NoteEntity)
+        fun onPint(note: NoteEntity)
+        fun moveToTop(note: NoteEntity)
     }
+
 }

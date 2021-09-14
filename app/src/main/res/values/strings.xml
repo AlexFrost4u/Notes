@@ -3,5 +3,8 @@
     <string name="test_string">Hi there how \n, are you doing here right at the moment </string>
     <string name="actionBarLabel">Think.Perform.Relax.</string>
     <string name="add_note">Add note</string>
+    <string name="move_note_content_description">Move note to the top</string>
+    <string name="share_note_content_description">Share note</string>
+    <string name="pin_note_content_description">Pin note</string>
 
 </resources>
