@@ -7,7 +7,7 @@
 
         <variable
             name="viewModel"
-            type="com.example.notes.ui.home.HomeViewModel" />
+            type="com.example.notes.ui.detail.DetailViewModel" />
 
     </data>
 
@@ -16,7 +16,7 @@
         android:layout_height="match_parent">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/homeToolbar"
+            android:id="@+id/detailToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?colorPrimary"
@@ -26,43 +26,49 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/actionBarLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/actionBarLabel"
-                android:textColor="@color/black"
-                android:textSize="20sp" />
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="@dimen/image_small"
+                android:layout_height="@dimen/image_small"
+                android:layout_gravity="start"
+                android:layout_marginEnd="15dp"
+                android:src="@drawable/back" />
 
             <ImageView
-                android:id="@+id/archive"
-                android:layout_width="@dimen/image_medium"
-                android:layout_height="@dimen/image_medium"
+                android:id="@+id/shareImage"
+                android:layout_width="@dimen/image_small"
+                android:layout_height="@dimen/image_small"
                 android:layout_gravity="end"
                 android:layout_marginEnd="15dp"
-                android:src="@drawable/archive" />
+                android:src="@drawable/share" />
+
+            <ImageView
+                android:id="@+id/pinImage"
+                android:layout_width="@dimen/image_small"
+                android:layout_height="@dimen/image_small"
+                android:layout_gravity="end"
+                android:layout_marginEnd="25dp"
+                android:onClick="@{() -> viewModel.setNewNotePin()}"
+                android:src="@drawable/pin_unfilled" />
 
         </androidx.appcompat.widget.Toolbar>
 
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/note_grid"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginBottom="10dp"
-            android:padding="6dp"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:layout_constraintBottom_toTopOf="@id/addButton"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/homeToolbar"
-            app:listData="@{viewModel.notes}"
-            app:spanCount="1"
-            tools:itemCount="16"
-            tools:listitem="@layout/list_item" />
+        <EditText
+            android:id="@+id/notesEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@color/white"
+            android:text="@{viewModel.selectedNote.text}"
+            android:textSize="@dimen/text_small"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/detailToolbar" />
+
 
         <android.widget.Button
-            android:id="@+id/addButton"
+            android:id="@+id/doMoreButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -71,7 +77,7 @@
             android:drawablePadding="10dp"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:text="@string/add_note"
+            android:text="@string/do_more"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"

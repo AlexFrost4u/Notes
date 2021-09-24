@@ -4,14 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
         <variable
             name="note"
             type="com.example.notes.database.NoteEntity" />
     </data>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
+        android:id="@+id/addCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="2dp"
@@ -25,11 +24,10 @@
 
             <ImageView
                 android:id="@+id/moveImage"
-                android:layout_width="@dimen/image_size"
-                android:layout_height="@dimen/image_size"
+                android:layout_width="@dimen/image_medium"
+                android:layout_height="@dimen/image_medium"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="4dp"
-                android:onClick="@{()->note}"
                 android:src="@drawable/move_to_top"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/noteText"
@@ -45,9 +43,8 @@
                 android:fontFamily="@font/nunito_extralight"
                 android:lines="2"
                 android:maxLines="2"
-                android:onClick="@{()->note.noteId}"
                 android:text="@{note.text}"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_small"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/shareImage"
                 app:layout_constraintStart_toEndOf="@+id/moveImage"
@@ -56,11 +53,10 @@
 
             <ImageView
                 android:id="@+id/shareImage"
-                android:layout_width="@dimen/image_size"
-                android:layout_height="@dimen/image_size"
+                android:layout_width="@dimen/image_small"
+                android:layout_height="@dimen/image_small"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="32dp"
-                android:onClick="@{()->note}"
                 android:src="@drawable/share"
                 app:layout_constraintEnd_toStartOf="@+id/pinImage"
                 app:layout_constraintTop_toTopOf="@+id/noteText"
@@ -68,11 +64,10 @@
 
             <ImageView
                 android:id="@+id/pinImage"
-                android:layout_width="@dimen/image_size"
-                android:layout_height="@dimen/image_size"
+                android:layout_width="@dimen/image_small"
+                android:layout_height="@dimen/image_small"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="4dp"
-                android:onClick="@{()->note}"
                 android:src="@drawable/pin_unfilled"
                 app:isPinned="@{note.isPinned}"
                 app:layout_constraintEnd_toEndOf="parent"

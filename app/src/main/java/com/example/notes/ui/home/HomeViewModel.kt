@@ -1,50 +1,92 @@
 package com.example.notes.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.util.Log
+import androidx.lifecycle.*
+import com.example.notes.database.NoteDao
 import com.example.notes.database.NoteEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel: ViewModel() {
-
-    private val testListOfNotes: MutableList<NoteEntity> =
-        mutableListOf(
-            NoteEntity(noteId=1,text="Hi there, I am text number 1. I am just filling up space",isPinned=false,notePosition = 1),
-            NoteEntity(noteId=2,text="Hi there, I am text number 2. I am just filling up space",isPinned=true,notePosition = 2),
-            NoteEntity(noteId=3,text="Hi there, I am text number 3. I am just filling up space",isPinned=false,notePosition = 3),
-            NoteEntity(noteId=4,text="Hi there, I am text number 4. I am just filling up space",isPinned=false,notePosition = 4),
-            NoteEntity(noteId=5,text="Hi there, I am text number 5. I am just filling up space",isPinned=true,notePosition = 5),
-            NoteEntity(noteId=6,text="Hi there, I am text number 6. I am just filling up space",isPinned=false,notePosition = 6),
-            NoteEntity(noteId=7,text="Hi there, I am text number 7. I am just filling up space",isPinned=false,notePosition = 7),
-            NoteEntity(noteId=8,text="Hi there, I am text number 8. I am just filling up space",isPinned=true,notePosition = 8),
-            NoteEntity(noteId=9,text="Hi there, I am text number 9. I am just filling up space",isPinned=true,notePosition = 9),
-            NoteEntity(noteId=10,text="Hi there, I am text number 10. I am just filling up space",isPinned=false,notePosition = 10),
-            NoteEntity(noteId=11,text="Hi there, I am text number 11. I am just filling up space",isPinned=false,notePosition = 11),
-            NoteEntity(noteId=12,text="Hi there, I am text number 12. I am just filling up space",isPinned=false,notePosition = 12),
-
-        )
+@HiltViewModel
+class HomeViewModel
+@Inject
+constructor(
+    private val noteDao: NoteDao,
+) : ViewModel() {
 
     // Our list of notes for recyclerview
     private val _notes = MutableLiveData<List<NoteEntity>>()
+
     // Access to the list
     val notes: LiveData<List<NoteEntity>>
         get() = _notes
 
-    // List of notes that we change after gesture
-    var listOfNotes = mutableListOf<NoteEntity>()
+    // New notes
+    var noteToBeAdded = MutableLiveData<NoteEntity>()
 
-    init{
+    // Navigate to chosen note
+    private val _navigateToSelectedNote = MutableLiveData<NoteEntity?>()
+    val navigateToSelectedNote: LiveData<NoteEntity?>
+        get() = _navigateToSelectedNote
+
+
+
+    var numberOfPinnedNotes = 0
+
+    init {
         getNotes()
-        listOfNotes = _notes.value?.toMutableList() ?: mutableListOf()
     }
 
+    // Get all notes from database
     private fun getNotes() {
-        _notes.value = testListOfNotes
+        viewModelScope.launch {
+            _notes.value = noteDao.getAllNotes()
+        }
+
     }
 
-    fun updateNotes() {
-        _notes.value = listOfNotes
+    // Calculate current pinned notes number
+    private fun calculateNumberOfPinnedNotes() {
+        numberOfPinnedNotes = notes.value!!.filter { note -> note.isPinned }.size
+    }
+
+    // Synchronize list
+    fun updateNotes(newList:List<NoteEntity>) {
+        _notes.value = newList
+        calculateNumberOfPinnedNotes()
+        //TO DO update list in database
+    }
+
+    // Determine to which note should we navigate
+    fun displayNoteDetails(note: NoteEntity) {
+        _navigateToSelectedNote.value = note
+    }
+
+    // Assure navigation is done once
+    fun displayNoteDetailsComplete() {
+        _navigateToSelectedNote.value = null
     }
 
 
+    fun insertNewNotesIntoDatabase() {
+        val position: Int = if (notes.value!!.isEmpty()) {0} else { notes.value!!.size }
+
+        // Determine note's position property
+        noteToBeAdded.value?.notePosition = position
+
+        viewModelScope.launch {
+            noteDao.insert(noteToBeAdded.value!!)
+            _notes.value = noteDao.getAllNotes()
+        }
+    }
+
+
+    // Update note in database
+
+    fun updateNote(note:NoteEntity){
+        viewModelScope.launch {
+            noteDao.update(note)
+        }
+    }
 }

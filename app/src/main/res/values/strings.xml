@@ -6,5 +6,7 @@
     <string name="move_note_content_description">Move note to the top</string>
     <string name="share_note_content_description">Share note</string>
     <string name="pin_note_content_description">Pin note</string>
+    <string name="do_more">Do more</string>
+    <string name="share_in">Share in</string>
 
 </resources>

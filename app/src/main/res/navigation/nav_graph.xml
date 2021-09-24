@@ -9,5 +9,37 @@
         android:id="@+id/homeFragment"
         android:name="com.example.notes.ui.home.HomeFragment"
         android:label="HomeFragment"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_addBottomSheetFragment"
+            app:destination="@id/addBottomSheetFragment" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/detailFragment"
+        android:name="com.example.notes.ui.detail.DetailFragment"
+        android:label="DetailFragment"
+        tools:layout="@layout/fragment_detail">
+        <argument
+            android:name="noteId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_detailFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <dialog
+        android:id="@+id/addBottomSheetFragment"
+        android:name="com.example.notes.ui.add.AddBottomSheetFragment"
+        android:label="AddBottomSheetFragment"
+        tools:layout="@layout/fragment_dialog_add">
+        <action
+            android:id="@+id/action_addBottomSheetFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </dialog>
+
 </navigation>
