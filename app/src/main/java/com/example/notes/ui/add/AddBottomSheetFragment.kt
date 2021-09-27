@@ -36,7 +36,4 @@ class AddBottomSheetFragment : BottomSheetDialogFragment() {
         return binding.root
     }
 
-    // Save new note upon click
-
-
 }

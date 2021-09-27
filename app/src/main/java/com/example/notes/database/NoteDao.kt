@@ -18,7 +18,7 @@ interface NoteDao {
     suspend fun update(noteEntity:NoteEntity)
 
     // Get all notes
-    @Query("SELECT * FROM notes") /*ORDER BY notePosition ASC*/
+    @Query("SELECT * FROM notes ORDER BY notePosition ASC")
     suspend fun getAllNotes(): List<NoteEntity>
 
     // Get note by specific id
@@ -27,7 +27,7 @@ interface NoteDao {
 
     // Delete note by id
     @Query("DELETE FROM notes WHERE noteId =:key")
-    fun deleteNoteById(key:Int)
+    suspend fun deleteNoteById(key:Int)
 
     @Query("DELETE FROM notes")
     suspend fun clear()

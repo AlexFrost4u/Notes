@@ -38,6 +38,17 @@ class DetailFragment : Fragment() {
         binding.doMoreButton.setOnClickListener {
             viewModel.setNewNoteText(binding.notesEdit.text.toString())
             viewModel.saveChanges()
+            this.findNavController()
+                .navigate(DetailFragmentDirections.actionDetailFragmentToHomeFragment())
+        }
+
+        binding.pinImage.setOnClickListener {
+            viewModel.changeNoteState()
+            if(viewModel.selectedNote.value!!.isPinned){
+                binding.pinImage.setImageResource(R.drawable.pin_filled)
+            }else{
+                binding.pinImage.setImageResource(R.drawable.pin_unfilled)
+            }
         }
 
         // Navigate back
