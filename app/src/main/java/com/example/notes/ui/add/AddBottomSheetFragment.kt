@@ -14,12 +14,14 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class AddBottomSheetFragment : BottomSheetDialogFragment() {
 
+    // Note that we will using to pass to HomeViewModel
     private var instance = NoteEntity()
 
     // Using activityViewModels so that i can insert new notes into DB using HomeViewModel as Hilt doesn't support
     // injection into dialog fragment. Create live data inside so that it will immediately insert it
     // after creating and new note will be shown in the background
     private val viewModel: HomeViewModel by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -27,8 +29,8 @@ class AddBottomSheetFragment : BottomSheetDialogFragment() {
     ): View {
         val binding = FragmentDialogAddBinding.inflate(inflater, container, false)
 
-
         binding.noteAddImage.setOnClickListener {
+            // Get text from EditText that is written now
             instance.text = binding.noteAddEdit.text.toString()
             viewModel.noteToBeAdded.value = instance
             binding.noteAddEdit.text.clear()

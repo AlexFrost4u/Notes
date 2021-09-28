@@ -24,9 +24,9 @@ class DetailFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         val binding = FragmentDetailBinding.inflate(inflater)
+
         binding.lifecycleOwner = this
-        // Sometimes IDE freaks out and there is a problem with detailViewModel even though
-        // it exists in xml
+
         binding.viewModel = viewModel
 
         // OnClickListener for share button
@@ -36,8 +36,11 @@ class DetailFragment : Fragment() {
 
         // OnClickListener for save button
         binding.doMoreButton.setOnClickListener {
-            viewModel.setNewNoteText(binding.notesEdit.text.toString())
-            viewModel.saveChanges()
+            viewModel.apply {
+                setOldNotePosition()
+                setNewNoteText(binding.notesEdit.text.toString())
+                saveChanges()
+            }
         }
 
         // OnClickListener for pin button
@@ -58,6 +61,7 @@ class DetailFragment : Fragment() {
         return binding.root
     }
 
+    // Share note that was passed
     private fun shareNote(note: NoteEntity) {
         val intent = Intent(Intent.ACTION_SEND)
         intent.type = "text/plain"

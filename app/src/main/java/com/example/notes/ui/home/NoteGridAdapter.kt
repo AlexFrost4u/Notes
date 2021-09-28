@@ -31,8 +31,6 @@ class NoteGridAdapter(private val customClickListener: CustomClickListener) :
         holder.bind(user)
     }
 
-    
-
     inner class NoteViewHolder(private var binding: ListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(note: NoteEntity) {

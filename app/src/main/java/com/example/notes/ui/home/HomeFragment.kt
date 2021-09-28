@@ -42,7 +42,6 @@ class HomeFragment : Fragment(), CustomClickListener {
         // Set lifecycleOwner
         binding.lifecycleOwner = this
 
-
         // Bind adapter
         noteGridAdapter = NoteGridAdapter(this)
         binding.noteGrid.adapter = noteGridAdapter
@@ -51,11 +50,18 @@ class HomeFragment : Fragment(), CustomClickListener {
         val itemTouchHelper = ItemTouchHelper(NoteTouchHelper())
         itemTouchHelper.attachToRecyclerView(binding.noteGrid)
 
-
         // Notify adapter if there is any change in note list
         viewModel.notes.observe(viewLifecycleOwner, {
             it?.let {
                 noteGridAdapter.submitList(it)
+            }
+        })
+
+        // Insert new notes if there are any
+        viewModel.noteToBeAdded.observe(viewLifecycleOwner, {
+            it?.let {
+                viewModel.insertNewNoteIntoDatabase()
+                // TO DO clear variable value after insert
             }
         })
 
@@ -74,17 +80,8 @@ class HomeFragment : Fragment(), CustomClickListener {
                 .navigate(HomeFragmentDirections.actionHomeFragmentToAddBottomSheetFragment())
         }
 
-        // Insert new notes if there are any
-        viewModel.noteToBeAdded.observe(viewLifecycleOwner, {
-            it?.let {
-                viewModel.insertNewNoteIntoDatabase()
-                // TO DO clear variable value after insert
-            }
-        })
-
         return binding.root
     }
-
 
     // Class to process gestures like drag and drop or swipe
     inner class NoteTouchHelper : ItemTouchHelper.SimpleCallback(
@@ -97,7 +94,6 @@ class HomeFragment : Fragment(), CustomClickListener {
             recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder,
         ): Boolean {
-
 
             // Create temp list to work with
             val tempList = viewModel.notes.value as MutableList<NoteEntity>
@@ -131,12 +127,8 @@ class HomeFragment : Fragment(), CustomClickListener {
             // Change temp list
             Collections.swap(tempList, startPosition, endPosition)
 
-            viewModel.correctNotePosition(oldList,tempList)
+            viewModel.updateNotesPosition(oldList, tempList)
 
-            // Synchronize with actual list
-            /*viewModel.updateListNotes(tempList)*/
-
-            // Notify adapter
             recyclerView.adapter?.notifyItemMoved(startPosition, endPosition)
 
             return true
@@ -153,13 +145,13 @@ class HomeFragment : Fragment(), CustomClickListener {
             val noteIdToBeDeleted = tempList[position].noteId
             tempList.removeAt(position)
 
-            viewModel.deleteNote(noteIdToBeDeleted)
-            viewModel.correctNotePositionAfterDelete(tempList)
+            viewModel.deleteNoteFromDatabaseById(noteIdToBeDeleted)
+
+            viewModel.updateNotesPositionAfterDelete(tempList)
 
             noteGridAdapter.notifyItemRemoved(position)
         }
     }
-
 
     /* Share note
     *  @param note that we want to share
@@ -171,36 +163,6 @@ class HomeFragment : Fragment(), CustomClickListener {
         startActivity(Intent.createChooser(intent, "Share in ....."))
     }
 
-    /* Move note the top of it's group( pinned, unpinned )
-    * @param note that we want to move
-    * @param position it's position in list
-    *
-     */
-    override fun clickOnMoveToTopIcon(note: NoteEntity, position: Int) {
-        // Create temp list to work with
-        val tempList = viewModel.notes.value as MutableList<NoteEntity>
-        viewModel.calculateNumberOfPinnedNotes()
-        val endPosition: Int = if (note.isPinned) {
-            0
-        } else {
-            viewModel.numberOfPinnedNotes
-        }
-        // Change temp list
-        val oldList = tempList.toMutableList()
-
-        tempList.removeAt(position)
-        tempList.add(endPosition, note)
-
-        viewModel.correctNotePosition(oldList,tempList)
-
-        // Synchronize with actual list
-        /*        viewModel.updateListNotes(tempList)*/
-
-        // Notify adapter
-        noteGridAdapter.notifyItemRemoved(position)
-        noteGridAdapter.notifyItemInserted(endPosition)
-    }
-
     /* Determine which note to show in detail screen
     * @param note that we want navigate to
     */
@@ -208,35 +170,65 @@ class HomeFragment : Fragment(), CustomClickListener {
         viewModel.displayNoteDetails(note)
     }
 
-    // Pin note. If it was pinned, move to the bottom.Otherwise move to the top
+    /// Move note the top of it's group( pinned, unpinned )
+    override fun clickOnMoveToTopIcon(note: NoteEntity, position: Int) {
+        moveNotesInList(ClickEvent.ClickOnMoveToTopIcon, note, position)
+    }
+
+    /// Pin note. If it was pinned, move to the bottom.Otherwise move to the top
     override fun clickOnPinIcon(note: NoteEntity, position: Int) {
+        moveNotesInList(ClickEvent.ClickOnPinIcon, note, position)
+    }
 
-        // Create temp list
+    /* Move note according to event
+        * @param note that we want to move
+        * @param position it's position in list
+         */
+    private fun moveNotesInList(clickEvent: ClickEvent, note: NoteEntity, position: Int) {
+        // Reference for list in viewModel
         val tempList = viewModel.notes.value as MutableList<NoteEntity>
+        // Position of note to be added
+        var noteNewPosition: Int = -1
+        // Depending on click event we will proceed
+        when (clickEvent) {
+            is ClickEvent.ClickOnPinIcon -> {
+                noteNewPosition = when (note.isPinned) {
+                    true -> tempList.size - 1
+                    false -> 0
+                }
+                // Change pin property as user click in pin icon
+                note.isPinned = note.isPinned.not()
+                // Update note's property in DB
+                viewModel.updateNoteInDatabase(note)
+            }
 
-        // Determine position of note based on it being pinned or not
-        val newNotePosition = when (note.isPinned) {
-            true -> tempList.size - 1
-            false -> 0
+            is ClickEvent.ClickOnMoveToTopIcon -> {
+                // Determine number of pinned notes
+                viewModel.calculateNumberOfPinnedNotes()
+                noteNewPosition = when (note.isPinned) {
+                    true -> 0
+                    false -> viewModel.numberOfPinnedNotes
+                }
+            }
         }
-        // Change note
-        note.isPinned = note.isPinned.not()
-
-        viewModel.updateNote(note)
-
+        // Create list to store initial state of list
         val oldList = tempList.toMutableList()
-        // Delete then add same note as it's a easiest way
+
+        // Move note a.k.a Insert at position after deleting
         tempList.removeAt(position)
-        tempList.add(newNotePosition, note)
+        tempList.add(noteNewPosition, note)
 
-        viewModel.correctNotePosition(oldList,tempList)
-
-        // // Synchronize with actual list
-    /*        viewModel.updateListNotes(listOfNotes)*/
+        // Update notes' position if they were change in process of note move
+        viewModel.updateNotesPosition(oldList, tempList)
 
         // Notify adapter
         noteGridAdapter.notifyItemRemoved(position)
-        noteGridAdapter.notifyItemInserted(newNotePosition)
+        noteGridAdapter.notifyItemInserted(noteNewPosition)
+    }
 
+    // Class to hold click event's
+    sealed class ClickEvent {
+        object ClickOnPinIcon : ClickEvent()
+        object ClickOnMoveToTopIcon : ClickEvent()
     }
 }

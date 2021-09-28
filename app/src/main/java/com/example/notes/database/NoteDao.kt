@@ -10,9 +10,6 @@ interface NoteDao {
     @Insert
     suspend fun insert(noteEntity:NoteEntity)
 
-    @Insert
-    suspend fun insertAll(notes:List<NoteEntity>)
-
     // Update note
     @Update
     suspend fun update(noteEntity:NoteEntity)
@@ -31,6 +28,5 @@ interface NoteDao {
 
     @Query("DELETE FROM notes")
     suspend fun clear()
-
 
 }

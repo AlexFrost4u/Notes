@@ -1,12 +1,10 @@
 package com.example.notes.ui.home
 
-import android.util.Log
 import androidx.lifecycle.*
 import com.example.notes.database.NoteDao
 import com.example.notes.database.NoteEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.util.EnumSet.range
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,25 +29,11 @@ constructor(
     val navigateToSelectedNote: LiveData<NoteEntity?>
         get() = _navigateToSelectedNote
 
-
     var numberOfPinnedNotes = 0
-
-
-    // Get all notes from database
-    fun getNotesFromDatabase() {
-        viewModelScope.launch {
-            _notes.value = noteDao.getAllNotes()
-        }
-    }
 
     // Calculate current pinned notes number
     fun calculateNumberOfPinnedNotes() {
         numberOfPinnedNotes = notes.value!!.filter { note -> note.isPinned }.size
-    }
-
-    // Synchronize list
-    fun updateNotes(newList: List<NoteEntity>) {
-        _notes.value = newList
     }
 
     // Determine to which note should we navigate
@@ -62,12 +46,34 @@ constructor(
         _navigateToSelectedNote.value = null
     }
 
+    // Get all notes from database
+    fun getNotesFromDatabase() {
+        viewModelScope.launch {
+            _notes.value = noteDao.getAllNotes()
+        }
+    }
 
+    // Update single note in database
+    fun updateNoteInDatabase(note: NoteEntity) {
+        viewModelScope.launch {
+            noteDao.update(note)
+        }
+    }
+
+    // Insert list of notes into database
+    private fun updateNotesInDatabase(changedNotes: MutableList<NoteEntity>) {
+        viewModelScope.launch {
+            for (data in changedNotes) {
+                noteDao.update(data)
+            }
+        }
+    }
+
+    // Insert new note that we got from BottomSheetDialogFragment
     fun insertNewNoteIntoDatabase() {
-        val position: Int = if (notes.value!!.isEmpty()) {
-            1
-        } else {
-            notes.value!!.size + 1
+        val position: Int =  when(notes.value!!.isEmpty()) {
+            true -> 1
+            false ->notes.value!!.size + 1
         }
 
         // Determine note's position property
@@ -77,59 +83,42 @@ constructor(
             noteDao.insert(noteToBeAdded.value!!)
             _notes.value = noteDao.getAllNotes()
         }
+        // Set to null to make it EFFECT
         noteToBeAdded.value = null
     }
 
-
-    // Update note in database
-    fun updateNote(note: NoteEntity) {
+    // Delete note by ID
+    fun deleteNoteFromDatabaseById(noteId: Int) {
         viewModelScope.launch {
-            noteDao.update(note)
+            noteDao.deleteNoteById(noteId)
         }
     }
 
-    fun correctNotePosition(
-        oldList: List<NoteEntity>,
-        newList: List<NoteEntity>,
-    ) {
-        val changedNotes: MutableList<NoteEntity> = mutableListOf()
+    // Update notes' position when we are moving note by deleting then adding it to the list
+    fun updateNotesPosition(oldList: List<NoteEntity>, newList: List<NoteEntity>) {
+        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
 
         for (index in oldList.indices) {
             if (oldList[index].noteId != newList[index].noteId) {
                 newList[index].notePosition = index + 1
-                changedNotes.add(newList[index])
+                notesToBeUpdated.add(newList[index])
             }
         }
         _notes.value = newList
-        updateNotesInDatabase(changedNotes)
+        updateNotesInDatabase(notesToBeUpdated)
     }
 
-    fun correctNotePositionAfterDelete(
-        newList: List<NoteEntity>
-    ) {
-        val changedNotes: MutableList<NoteEntity> = mutableListOf()
+    // Update notes' position when we delete note
+    fun updateNotesPositionAfterDelete(newList: List<NoteEntity>) {
+        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
+
         for (index in newList.indices) {
-            if (newList[index].notePosition != index + 1){
+            if (newList[index].notePosition != index + 1) {
                 newList[index].notePosition = index + 1
-                changedNotes.add(newList[index])
+                notesToBeUpdated.add(newList[index])
             }
         }
         _notes.value = newList
-        updateNotesInDatabase(changedNotes)
-    }
-
-    private fun updateNotesInDatabase(changedNotes: MutableList<NoteEntity>) {
-        viewModelScope.launch {
-            for (data in changedNotes) {
-                noteDao.update(data)
-            }
-        }
-    }
-
-
-    fun deleteNote(noteId: Int) {
-        viewModelScope.launch {
-            noteDao.deleteNoteById(noteId)
-        }
+        updateNotesInDatabase(notesToBeUpdated)
     }
 }
