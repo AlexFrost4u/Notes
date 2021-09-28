@@ -29,19 +29,18 @@ class DetailFragment : Fragment() {
         // it exists in xml
         binding.viewModel = viewModel
 
-        // OnClickListener for share image
+        // OnClickListener for share button
         binding.shareImage.setOnClickListener {
             shareNote(viewModel.selectedNote.value!!)
         }
 
-        // OnClickListener for save image
+        // OnClickListener for save button
         binding.doMoreButton.setOnClickListener {
             viewModel.setNewNoteText(binding.notesEdit.text.toString())
             viewModel.saveChanges()
-            this.findNavController()
-                .navigate(DetailFragmentDirections.actionDetailFragmentToHomeFragment())
         }
 
+        // OnClickListener for pin button
         binding.pinImage.setOnClickListener {
             viewModel.changeNoteState()
             if(viewModel.selectedNote.value!!.isPinned){
