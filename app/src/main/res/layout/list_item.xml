@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="note"
             type="com.example.notes.database.NoteEntity" />
@@ -28,10 +29,10 @@
                 android:layout_height="@dimen/image_medium"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="4dp"
+                android:contentDescription="@string/move_note_content_description"
                 android:src="@drawable/move_to_top"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/noteText"
-                android:contentDescription="@string/move_note_content_description" />
+                app:layout_constraintTop_toTopOf="@+id/noteText" />
 
             <TextView
                 android:id="@+id/noteText"
@@ -57,10 +58,10 @@
                 android:layout_height="@dimen/image_small"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="32dp"
+                android:contentDescription="@string/share_note_content_description"
                 android:src="@drawable/share"
                 app:layout_constraintEnd_toStartOf="@+id/pinImage"
-                app:layout_constraintTop_toTopOf="@+id/noteText"
-                android:contentDescription="@string/share_note_content_description" />
+                app:layout_constraintTop_toTopOf="@+id/noteText" />
 
             <ImageView
                 android:id="@+id/pinImage"
@@ -68,11 +69,11 @@
                 android:layout_height="@dimen/image_small"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="4dp"
+                android:contentDescription="@string/pin_note_content_description"
                 android:src="@drawable/pin_unfilled"
                 app:isPinned="@{note.isPinned}"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/noteText"
-                android:contentDescription="@string/pin_note_content_description" />
+                app:layout_constraintTop_toTopOf="@+id/noteText" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

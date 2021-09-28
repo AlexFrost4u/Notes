@@ -37,7 +37,7 @@ class DetailFragment : Fragment() {
         // OnClickListener for save button
         binding.doMoreButton.setOnClickListener {
             viewModel.apply {
-                setOldNotePosition()
+
                 setNewNoteText(binding.notesEdit.text.toString())
                 saveChanges()
             }

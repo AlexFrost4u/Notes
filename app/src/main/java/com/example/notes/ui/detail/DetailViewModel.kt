@@ -26,9 +26,6 @@ constructor(
     // List of notes from DB
     private val _notes = MutableLiveData<List<NoteEntity>>()
 
-    // Position of selected note in DB so that we can find it after note's properties change
-    private var oldNotePosition = -1
-
     init {
         // Get note id from bundle
         _selectedNoteId.value = savedStateHandle.get<Int>("noteId")
@@ -38,9 +35,6 @@ constructor(
         getAllNotesFromDatabase()
     }
 
-    fun setOldNotePosition(){
-        oldNotePosition = _notes.value!!.indexOf(_selectedNote.value!!)
-    }
 
     // Set new value for the text property of note
     fun setNewNoteText(newText: String) {
@@ -54,7 +48,7 @@ constructor(
 
     // Update selected note in the Database
     fun saveChanges() {
-        if(selectedNote.value!!.isPinned == _notes.value!![oldNotePosition].isPinned){
+        if(selectedNote.value!!.isPinned == _notes.value!![selectedNote.value!!.notePosition - 1].isPinned){
             updateIfPinIsNoteChanged()
         }else {
             correctNotePositionInDatabase()
@@ -102,7 +96,7 @@ constructor(
         }
 
         // Move note accordingly
-        tempList.removeAt(oldNotePosition)
+        tempList.removeAt(selectedNote.value!!.notePosition - 1)
         tempList.add(newNotePosition, selectedNote.value!!)
 
         // List of notes that should be updated in database
