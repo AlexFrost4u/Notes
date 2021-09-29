@@ -29,11 +29,9 @@ constructor(
     val navigateToSelectedNote: LiveData<NoteEntity?>
         get() = _navigateToSelectedNote
 
-    var numberOfPinnedNotes = 0
-
     // Calculate current pinned notes number
-    fun calculateNumberOfPinnedNotes() {
-        numberOfPinnedNotes = notes.value!!.filter { note -> note.isPinned }.size
+    fun calculateNumberOfPinnedNotes():Int {
+        return notes.value!!.filter { note -> note.isPinned }.size
     }
 
     // Determine to which note should we navigate
@@ -61,7 +59,7 @@ constructor(
     }
 
     // Insert list of notes into database
-    private fun updateNotesInDatabase(changedNotes: MutableList<NoteEntity>) {
+    fun updateNotesInDatabase(changedNotes: MutableList<NoteEntity>) {
         viewModelScope.launch {
             for (data in changedNotes) {
                 noteDao.update(data)
@@ -94,31 +92,8 @@ constructor(
         }
     }
 
-    // Update notes' position when we are moving note by deleting then adding it to the list
-    fun updateNotesPosition(oldList: List<NoteEntity>, newList: List<NoteEntity>) {
-        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
-
-        for (index in oldList.indices) {
-            if (oldList[index].noteId != newList[index].noteId) {
-                newList[index].notePosition = index + 1
-                notesToBeUpdated.add(newList[index])
-            }
-        }
+    // Set new list to notes
+    fun updateNotesValue(newList:List<NoteEntity>){
         _notes.value = newList
-        updateNotesInDatabase(notesToBeUpdated)
-    }
-
-    // Update notes' position when we delete note
-    fun updateNotesPositionAfterDelete(newList: List<NoteEntity>) {
-        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
-
-        for (index in newList.indices) {
-            if (newList[index].notePosition != index + 1) {
-                newList[index].notePosition = index + 1
-                notesToBeUpdated.add(newList[index])
-            }
-        }
-        _notes.value = newList
-        updateNotesInDatabase(notesToBeUpdated)
     }
 }

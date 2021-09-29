@@ -15,9 +15,6 @@ constructor(
     private val noteDao: NoteDao,
 ) : ViewModel() {
 
-    // Id of note to be shown in screen
-    private val _selectedNoteId = MutableLiveData<Int>()
-
     // Note that we show
     private val _selectedNote = MutableLiveData<NoteEntity>()
     val selectedNote: LiveData<NoteEntity>
@@ -25,16 +22,17 @@ constructor(
 
     // List of notes from DB
     private val _notes = MutableLiveData<List<NoteEntity>>()
+    val notes: LiveData<List<NoteEntity>>
+        get() = _notes
 
     init {
         // Get note id from bundle
-        _selectedNoteId.value = savedStateHandle.get<Int>("noteId")
+        val id = savedStateHandle.get<Int>("noteId")
         // Get note from DB according to it's ID
-        getSelectedNoteFromDatabase()
+        getSelectedNoteFromDatabase(id!!)
         // Get all notes
         getAllNotesFromDatabase()
     }
-
 
     // Set new value for the text property of note
     fun setNewNoteText(newText: String) {
@@ -42,17 +40,8 @@ constructor(
     }
 
     // Change pin state
-    fun changeNoteState() {
+    fun setNewNoteState() {
         _selectedNote.value!!.isPinned = _selectedNote.value!!.isPinned.not()
-    }
-
-    // Update selected note in the Database
-    fun saveChanges() {
-        if(selectedNote.value!!.isPinned == _notes.value!![selectedNote.value!!.notePosition - 1].isPinned){
-            updateIfPinIsNoteChanged()
-        }else {
-            correctNotePositionInDatabase()
-        }
     }
 
     // Get notes from DB and determine selected note position
@@ -63,54 +52,26 @@ constructor(
     }
 
     // Get note to be shown by it's id from database
-    private fun getSelectedNoteFromDatabase() {
+    private fun getSelectedNoteFromDatabase(id: Int) {
         viewModelScope.launch {
-            _selectedNote.value = noteDao.getNoteById(_selectedNoteId.value!!)
+            _selectedNote.value = noteDao.getNoteById(id)
         }
     }
 
     // Update in database
-    private fun updateNotesInDatabase(changedNotes: MutableList<NoteEntity>) {
+    fun updateNotesInDatabase(changedNotes: MutableList<NoteEntity>) {
         viewModelScope.launch {
             changedNotes.forEach {
                 noteDao.update(it)
             }
         }
     }
+
     // Just update note if pin property is not modified
-    private fun updateIfPinIsNoteChanged(){
+    fun updateIfPinIsNotChanged() {
         viewModelScope.launch {
             noteDao.update(selectedNote.value!!)
         }
-    }
-
-    private fun correctNotePositionInDatabase() {
-        // List notes but without selected note changes
-        val tempList = _notes.value!!.toMutableList()
-
-
-        // Determine note future position by it's pin property
-        val newNotePosition = when (selectedNote.value!!.isPinned) {
-            true -> 0
-            false -> tempList.size - 1
-        }
-
-        // Move note accordingly
-        tempList.removeAt(selectedNote.value!!.notePosition - 1)
-        tempList.add(newNotePosition, selectedNote.value!!)
-
-        // List of notes that should be updated in database
-        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
-
-        // Determine new note position for changed notes
-        for(index in tempList.indices){
-            if(tempList[index].notePosition != index + 1){
-                tempList[index].notePosition = index + 1
-                notesToBeUpdated.add(tempList[index])
-            }
-        }
-        // Update notes that were changed in database
-        updateNotesInDatabase(notesToBeUpdated)
     }
 }
 

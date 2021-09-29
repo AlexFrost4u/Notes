@@ -17,13 +17,14 @@ import dagger.hilt.android.AndroidEntryPoint
 class DetailFragment : Fragment() {
 
     private val viewModel: DetailViewModel by viewModels()
+    private lateinit var binding: FragmentDetailBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val binding = FragmentDetailBinding.inflate(inflater)
+        binding = FragmentDetailBinding.inflate(inflater)
 
         binding.lifecycleOwner = this
 
@@ -36,19 +37,15 @@ class DetailFragment : Fragment() {
 
         // OnClickListener for save button
         binding.doMoreButton.setOnClickListener {
-            viewModel.apply {
-
-                setNewNoteText(binding.notesEdit.text.toString())
-                saveChanges()
-            }
+            saveChanges()
         }
 
         // OnClickListener for pin button
         binding.pinImage.setOnClickListener {
-            viewModel.changeNoteState()
-            if(viewModel.selectedNote.value!!.isPinned){
+            viewModel.setNewNoteState()
+            if (viewModel.selectedNote.value!!.isPinned) {
                 binding.pinImage.setImageResource(R.drawable.pin_filled)
-            }else{
+            } else {
                 binding.pinImage.setImageResource(R.drawable.pin_unfilled)
             }
         }
@@ -67,6 +64,44 @@ class DetailFragment : Fragment() {
         intent.type = "text/plain"
         intent.putExtra(Intent.EXTRA_TEXT, note.text)
         startActivity(Intent.createChooser(intent, resources.getText(R.string.share_in)))
+    }
+
+    private fun saveChanges() {
+        viewModel.setNewNoteText(binding.notesEdit.text.toString())
+        if (viewModel.selectedNote.value!!.isPinned == viewModel.notes.value!![viewModel.selectedNote.value!!.notePosition - 1].isPinned) {
+            viewModel.updateIfPinIsNotChanged()
+        } else {
+            correctNotePositionInDatabase()
+        }
+    }
+
+
+    private fun correctNotePositionInDatabase() {
+        // List notes but without selected note changes
+        val tempList = viewModel.notes.value!!.toMutableList()
+
+        // Determine note future position by it's pin property
+        val newNotePosition = when (viewModel.selectedNote.value!!.isPinned) {
+            true -> 0
+            false -> tempList.size - 1
+        }
+
+        // Move note accordingly
+        tempList.removeAt(viewModel.selectedNote.value!!.notePosition - 1)
+        tempList.add(newNotePosition, viewModel.selectedNote.value!!)
+
+        // List of notes that should be updated in database
+        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
+
+        // Determine new note position for changed notes
+        for (index in tempList.indices) {
+            if (tempList[index].notePosition != index + 1) {
+                tempList[index].notePosition = index + 1
+                notesToBeUpdated.add(tempList[index])
+            }
+        }
+        // Update notes that were changed in database
+        viewModel.updateNotesInDatabase(notesToBeUpdated)
     }
 
 }

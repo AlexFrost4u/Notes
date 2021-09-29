@@ -8,5 +8,8 @@
     <string name="pin_note_content_description">Pin note</string>
     <string name="do_more">Do more</string>
     <string name="share_in">Share in</string>
+    <string name="archived_notes">Archived notes</string>
+    <string name="back_button">Back button</string>
+    <string name="add_new_note">Add new note</string>
 
 </resources>

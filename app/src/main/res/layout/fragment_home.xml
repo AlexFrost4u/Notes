@@ -36,10 +36,12 @@
 
             <ImageView
                 android:id="@+id/archive"
-                android:layout_width="@dimen/image_medium"
-                android:layout_height="@dimen/image_medium"
+                android:layout_width="@dimen/image_size_medium"
+                android:layout_height="@dimen/image_size_medium"
                 android:layout_gravity="end"
                 android:layout_marginEnd="15dp"
+                android:contentDescription="@string/archived_notes"
+                android:padding="@dimen/image_padding_medium"
                 android:src="@drawable/archive" />
 
         </androidx.appcompat.widget.Toolbar>

@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notes.database.NoteEntity
@@ -61,7 +60,6 @@ class HomeFragment : Fragment(), CustomClickListener {
         viewModel.noteToBeAdded.observe(viewLifecycleOwner, {
             it?.let {
                 viewModel.insertNewNoteIntoDatabase()
-                // TO DO clear variable value after insert
             }
         })
 
@@ -81,76 +79,6 @@ class HomeFragment : Fragment(), CustomClickListener {
         }
 
         return binding.root
-    }
-
-    // Class to process gestures like drag and drop or swipe
-    inner class NoteTouchHelper : ItemTouchHelper.SimpleCallback(
-        ItemTouchHelper.UP.or(
-            ItemTouchHelper.DOWN
-        ), ItemTouchHelper.LEFT
-    ) {
-
-        override fun onMove(
-            recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
-            target: RecyclerView.ViewHolder,
-        ): Boolean {
-
-            // Create temp list to work with
-            val tempList = viewModel.notes.value as MutableList<NoteEntity>
-
-            val startPosition = viewHolder.adapterPosition
-
-            var endPosition = target.adapterPosition
-
-            // Update variable just in case of changes
-            viewModel.calculateNumberOfPinnedNotes()
-
-            // Get current number of pinned notes
-            val localPinnedItemsNumber =
-                viewModel.numberOfPinnedNotes
-
-            // Check for unpinned notes mixing with pinned
-            /*val startNote = viewModel.notes.value!![startPosition]*/
-            val startNote = tempList[startPosition]
-            /*val endNote = viewModel.notes.value!![endPosition]*/
-            val endNote = tempList[endPosition]
-
-            // Prevent unpinned note mixing with pinned
-            if (!startNote.isPinned && endNote.isPinned) {
-                endPosition = localPinnedItemsNumber
-            } // Prevent pinned note mixing with unpinned
-            if (startNote.isPinned && !endNote.isPinned) {
-                endPosition = localPinnedItemsNumber - 1
-            }
-            val oldList = tempList.toMutableList()
-
-            // Change temp list
-            Collections.swap(tempList, startPosition, endPosition)
-
-            viewModel.updateNotesPosition(oldList, tempList)
-
-            recyclerView.adapter?.notifyItemMoved(startPosition, endPosition)
-
-            return true
-        }
-
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-
-            // Temporary  list to work with
-            val tempList = viewModel.notes.value as MutableList<NoteEntity>
-
-            // Get position of note
-            val position = viewHolder.adapterPosition
-
-            val noteIdToBeDeleted = tempList[position].noteId
-            tempList.removeAt(position)
-
-            viewModel.deleteNoteFromDatabaseById(noteIdToBeDeleted)
-
-            viewModel.updateNotesPositionAfterDelete(tempList)
-
-            noteGridAdapter.notifyItemRemoved(position)
-        }
     }
 
     /* Share note
@@ -180,6 +108,12 @@ class HomeFragment : Fragment(), CustomClickListener {
         moveNotesInList(ClickEvent.ClickOnPinIcon, note, position)
     }
 
+    // Class to hold click event's
+    sealed class ClickEvent {
+        object ClickOnPinIcon : ClickEvent()
+        object ClickOnMoveToTopIcon : ClickEvent()
+    }
+
     /* Move note according to event
         * @param note that we want to move
         * @param position it's position in list
@@ -207,7 +141,7 @@ class HomeFragment : Fragment(), CustomClickListener {
                 viewModel.calculateNumberOfPinnedNotes()
                 noteNewPosition = when (note.isPinned) {
                     true -> 0
-                    false -> viewModel.numberOfPinnedNotes
+                    false -> viewModel.calculateNumberOfPinnedNotes()
                 }
             }
         }
@@ -219,16 +153,110 @@ class HomeFragment : Fragment(), CustomClickListener {
         tempList.add(noteNewPosition, note)
 
         // Update notes' position if they were change in process of note move
-        viewModel.updateNotesPosition(oldList, tempList)
+        updateNotesPosition(oldList, tempList)
 
         // Notify adapter
         noteGridAdapter.notifyItemRemoved(position)
         noteGridAdapter.notifyItemInserted(noteNewPosition)
     }
 
-    // Class to hold click event's
-    sealed class ClickEvent {
-        object ClickOnPinIcon : ClickEvent()
-        object ClickOnMoveToTopIcon : ClickEvent()
+    // Update notes' position when we are moving note by deleting then adding it to the list
+    private fun updateNotesPosition(oldList: List<NoteEntity>, newList: List<NoteEntity>) {
+        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
+
+        for (index in oldList.indices) {
+            if (oldList[index].noteId != newList[index].noteId) {
+                newList[index].notePosition = index + 1
+                notesToBeUpdated.add(newList[index])
+            }
+        }
+        viewModel.updateNotesValue(newList)
+        viewModel.updateNotesInDatabase(notesToBeUpdated)
     }
+
+
+    // Class to process gestures like drag and drop or swipe
+    inner class NoteTouchHelper : ItemTouchHelper.SimpleCallback(
+        ItemTouchHelper.UP.or(
+            ItemTouchHelper.DOWN
+        ), ItemTouchHelper.LEFT
+    ) {
+
+        override fun onMove(
+            recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder,
+        ): Boolean {
+
+            // Create temp list to work with
+            val tempList = viewModel.notes.value as MutableList<NoteEntity>
+
+            val startPosition = viewHolder.adapterPosition
+
+            var endPosition = target.adapterPosition
+
+            // Update variable just in case of changes
+            viewModel.calculateNumberOfPinnedNotes()
+
+            // Get current number of pinned notes
+            val localPinnedItemsNumber =
+                viewModel.calculateNumberOfPinnedNotes()
+
+            // Check for unpinned notes mixing with pinned
+            /*val startNote = viewModel.notes.value!![startPosition]*/
+            val startNote = tempList[startPosition]
+            /*val endNote = viewModel.notes.value!![endPosition]*/
+            val endNote = tempList[endPosition]
+
+            // Prevent unpinned note mixing with pinned
+            if (!startNote.isPinned && endNote.isPinned) {
+                endPosition = localPinnedItemsNumber
+            } // Prevent pinned note mixing with unpinned
+            if (startNote.isPinned && !endNote.isPinned) {
+                endPosition = localPinnedItemsNumber - 1
+            }
+            val oldList = tempList.toMutableList()
+
+            // Change temp list
+            Collections.swap(tempList, startPosition, endPosition)
+
+            updateNotesPosition(oldList, tempList)
+
+            recyclerView.adapter?.notifyItemMoved(startPosition, endPosition)
+
+            return true
+        }
+
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+
+            // Temporary  list to work with
+            val tempList = viewModel.notes.value as MutableList<NoteEntity>
+
+            // Get position of note
+            val position = viewHolder.adapterPosition
+
+            val noteIdToBeDeleted = tempList[position].noteId
+            tempList.removeAt(position)
+
+            viewModel.deleteNoteFromDatabaseById(noteIdToBeDeleted)
+
+            updateNotesPositionAfterDelete(tempList)
+
+            noteGridAdapter.notifyItemRemoved(position)
+        }
+    }
+
+    // Update notes' position when we delete note
+    private fun updateNotesPositionAfterDelete(newList: List<NoteEntity>) {
+        val notesToBeUpdated: MutableList<NoteEntity> = mutableListOf()
+
+        for (index in newList.indices) {
+            if (newList[index].notePosition != index + 1) {
+                newList[index].notePosition = index + 1
+                notesToBeUpdated.add(newList[index])
+            }
+        }
+        viewModel.updateNotesValue(newList)
+        viewModel.updateNotesInDatabase(notesToBeUpdated)
+    }
+
 }
