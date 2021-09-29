@@ -67,11 +67,15 @@ class DetailFragment : Fragment() {
     }
 
     private fun saveChanges() {
-        viewModel.setNewNoteText(binding.notesEdit.text.toString())
-        if (viewModel.selectedNote.value!!.isPinned == viewModel.notes.value!![viewModel.selectedNote.value!!.notePosition - 1].isPinned) {
-            viewModel.updateIfPinIsNotChanged()
-        } else {
-            correctNotePositionInDatabase()
+        // If note text is empty, we are not saving it in DB
+        val noteText = binding.notesEdit.text.trim()
+        if(noteText.isNotEmpty()) {
+            viewModel.setNewNoteText(noteText.toString())
+            if (viewModel.selectedNote.value!!.isPinned == viewModel.notes.value!![viewModel.selectedNote.value!!.notePosition - 1].isPinned) {
+                viewModel.updateIfPinIsNotChanged()
+            } else {
+                correctNotePositionInDatabase()
+            }
         }
     }
 
