@@ -1,5 +1,6 @@
 package com.example.notes.ui.home
 
+import android.view.View
 import androidx.lifecycle.*
 import com.example.notes.database.NoteDao
 import com.example.notes.database.NoteEntity
@@ -29,8 +30,24 @@ constructor(
     val navigateToSelectedNote: LiveData<NoteEntity?>
         get() = _navigateToSelectedNote
 
+
+    /*// Allow click
+    private val _isClickPossible = MutableLiveData<Int>()
+    val isClickPossible: LiveData<Int>
+        get() = _isClickPossible
+    init{
+        _isClickPossible.value = View.GONE
+    }
+    fun clickableRecyclerView(isClickable:Boolean){
+        if(isClickable){
+            _isClickPossible.value = View.GONE
+        } else{
+            _isClickPossible.value = View.VISIBLE
+        }
+    }
+*/
     // Calculate current pinned notes number
-    fun calculateNumberOfPinnedNotes():Int {
+    fun calculateNumberOfPinnedNotes(): Int {
         return notes.value!!.filter { note -> note.isPinned }.size
     }
 
@@ -69,9 +86,9 @@ constructor(
 
     // Insert new note that we got from BottomSheetDialogFragment
     fun insertNewNoteIntoDatabase() {
-        val position: Int =  when(notes.value!!.isEmpty()) {
+        val position: Int = when (notes.value!!.isEmpty()) {
             true -> 1
-            false ->notes.value!!.size + 1
+            false -> notes.value!!.size + 1
         }
 
         // Determine note's position property
@@ -93,7 +110,7 @@ constructor(
     }
 
     // Set new list to notes
-    fun updateNotesValue(newList:List<NoteEntity>){
+    fun updateNotesValue(newList: List<NoteEntity>) {
         _notes.value = newList
     }
 }

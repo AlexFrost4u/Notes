@@ -3,6 +3,7 @@ package com.example.notes.ui.home
 import android.content.Intent
 import android.content.Intent.EXTRA_TEXT
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,6 +42,7 @@ class HomeFragment : Fragment(), CustomClickListener {
         // Set lifecycleOwner
         binding.lifecycleOwner = this
 
+        subscribeObservers()
         // Bind adapter
         noteGridAdapter = NoteGridAdapter(this)
         binding.noteGrid.adapter = noteGridAdapter
@@ -49,6 +51,16 @@ class HomeFragment : Fragment(), CustomClickListener {
         val itemTouchHelper = ItemTouchHelper(NoteTouchHelper())
         itemTouchHelper.attachToRecyclerView(binding.noteGrid)
 
+        // Navigate to add screen
+        binding.addButton.setOnClickListener {
+            this.findNavController()
+                .navigate(HomeFragmentDirections.actionHomeFragmentToAddBottomSheetFragment())
+        }
+
+        return binding.root
+    }
+
+    private fun subscribeObservers() {
         // Notify adapter if there is any change in note list
         viewModel.notes.observe(viewLifecycleOwner, {
             it?.let {
@@ -71,14 +83,6 @@ class HomeFragment : Fragment(), CustomClickListener {
                 viewModel.displayNoteDetailsComplete()
             }
         })
-
-        // Navigate to add screen
-        binding.addButton.setOnClickListener {
-            this.findNavController()
-                .navigate(HomeFragmentDirections.actionHomeFragmentToAddBottomSheetFragment())
-        }
-
-        return binding.root
     }
 
     /* Share note
@@ -96,15 +100,18 @@ class HomeFragment : Fragment(), CustomClickListener {
     */
     override fun clickOnText(note: NoteEntity) {
         viewModel.displayNoteDetails(note)
+
     }
 
     /// Move note the top of it's group( pinned, unpinned )
     override fun clickOnMoveToTopIcon(note: NoteEntity, position: Int) {
+        /*viewModel.clickableRecyclerView(false)*/
         moveNotesInList(ClickEvent.ClickOnMoveToTopIcon, note, position)
     }
 
     /// Pin note. If it was pinned, move to the bottom.Otherwise move to the top
     override fun clickOnPinIcon(note: NoteEntity, position: Int) {
+        /*viewModel.clickableRecyclerView(false)*/
         moveNotesInList(ClickEvent.ClickOnPinIcon, note, position)
     }
 
@@ -152,12 +159,24 @@ class HomeFragment : Fragment(), CustomClickListener {
         tempList.removeAt(position)
         tempList.add(noteNewPosition, note)
 
+        Log.i("APP_DEBUG","--------${note.noteId} at ${note.notePosition}" )
+
+        for(data in tempList) {
+            Log.i("APP_DEBUG","${data.noteId} at ${data.notePosition}")
+        }
+        Log.i("APP_DEBUG","----------------------------------------")
+        for(data in viewModel.notes.value!!) {
+            Log.i("APP_DEBUG","${data.noteId} at ${data.notePosition}")
+        }
+
         // Update notes' position if they were change in process of note move
         updateNotesPosition(oldList, tempList)
 
         // Notify adapter
         noteGridAdapter.notifyItemRemoved(position)
         noteGridAdapter.notifyItemInserted(noteNewPosition)
+
+        /*viewModel.clickableRecyclerView(true)*/
     }
 
     // Update notes' position when we are moving note by deleting then adding it to the list
@@ -172,6 +191,7 @@ class HomeFragment : Fragment(), CustomClickListener {
         }
         viewModel.updateNotesValue(newList)
         viewModel.updateNotesInDatabase(notesToBeUpdated)
+        /*viewModel.clickableRecyclerView(true)*/
     }
 
 

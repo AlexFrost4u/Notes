@@ -1,13 +1,7 @@
 package com.example.notes.util
 
-import android.graphics.Typeface
-import android.text.Html
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.style.StyleSpan
-import android.util.Log
+
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notes.R
@@ -28,3 +22,4 @@ fun bindRecyclerView(recyclerView: RecyclerView, data: List<NoteEntity>?) {
     val adapter = recyclerView.adapter as NoteGridAdapter
     adapter.submitList(data)
 }
+
