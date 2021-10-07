@@ -1,11 +1,10 @@
 Notes
 
-\\
-![home_screen](images/HomeScreen.jpg)
-\\
-![detail_screen](images/DetailScreen.jpg)
-\\
-![add_screen](images/AddScreen.jpg)
+![home_screen](images/HomeScreen.jpg)\\
+
+![detail_screen](images/DetailScreen.jpg)\\
+
+![add_screen](images/AddScreen.jpg)\\
 
 Functionality:
 
