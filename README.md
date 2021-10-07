@@ -2,7 +2,7 @@ Notes
 
 ![home_screen](./images/HomeScreen.png)
 
-![detail_screen](images/DetailScreen.png)
+![detail_screen](images/DetailScreen.jpg)
 
 ![add_screen](images/AddScreen.png)
 
