@@ -1,6 +1,6 @@
 Notes
 
-![home_screen](images/HomeScreen.png)
+![home_screen](./images/HomeScreen.png)
 
 ![detail_screen](images/DetailScreen.png)
 
